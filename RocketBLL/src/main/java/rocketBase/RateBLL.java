@@ -6,22 +6,19 @@ public class RateBLL {
 
 	private static RateDAL _RateDAL = new RateDAL();
 	
-	static double getRate(int GivenCreditScore) 
+	static double getRate(int GivenCreditScore) throws RatException
 	{
-		//TODO - RocketBLL RateBLL.getRate - make sure you throw any exception
-		
-		//		Call RateDAL.getAllRates... this returns an array of rates
-		//		write the code that will search the rates to determine the 
-		//		interest rate for the given credit score
-		//		hints:  you have to sort the rates...  you can do this by using
-		//			a comparator... or by using an OrderBy statement in the HQL
-		
-		
-		//TODO - RocketBLL RateBLL.getRate
-		//			obviously this should be changed to return the determined rate
-		return 0;
-		
-		
+		double myrate= 0;
+		for(int j= 0; j<RDMList.size(); j++){
+			if(GivenCreditScore>= RDMList.get(j).getiMinCreditScore()){
+				myRate= 0.01*RDMList.get(j).getdInterestRate();
+			}
+		}
+		if(myrate== 0){
+			RateException noRate= new RateException(RDMList.get(0));
+			return 0;
+		}
+		return myrate;
 	}
 	
 	
@@ -31,6 +28,33 @@ public class RateBLL {
 	
 	public static double getPayment(double r, double n, double p, double f, boolean t)
 	{		
-		return FinanceLib.pmt(r, n, p, f, t);
+		double pmt= -1*(FinanceLib.pmt(r/12.0, 12.0*n, p, f, t));
+		return pmt;
+	}
+	public static double calculateP(double expenses, double income){
+		double monthlyP= 0;
+		if(expenses==0){
+			monthlyP= income*0.28;
+		}
+		else{
+			monthlyP= (income*0.36)-expenses;
+		}
+		return monthlyP;
+	}
+	//message part for after calculation
+	public static String fullPaymentToString(double rate, double pmt, double monthlyP){
+		String rateAsPercentage= ((100*rate))+"%";
+		String resultMessage;
+		if(rate==0){
+			resultMessage= "Credit score invalid";
+		}
+		else if(monthlyP>=pmt){
+			String payment= String.format("%.2f", pmt);
+			resultMessage= "Payment is: $"+payment+" at "+rateAsPercentage+" interest";
+		}
+		else{
+			resultMessage= "Mortgage not affordable";
+		}
+		return resultMessage;
 	}
 }

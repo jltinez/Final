@@ -23,28 +23,62 @@ public class MortgageController {
 	//		Button   -  button to calculate the loan payment
 	//		Label    -  to show error messages (exception throw, payment exception)
 
+	private MainApp mainApp;
+	
+	//	TODO - RocketClient.RocketMainController
+	
+	//	Create private instance variables for:
+	@FXML
+    private TextField txtIncome;
+	@FXML
+	private TextField txtExpenses;
+	@FXML
+	private TextField txtCreditScore;
+	@FXML
+	private TextField txtHouseCost;
+	@FXML
+	private ComboBox comboboxTerm;
+	@FXML
+	private Label lblIncome;
+	@FXML
+	private Label lblExpenses;
+	@FXML
+	private Label lblCreditScore;
+	@FXML
+	private Label lblHouseCost;
+	@FXML
+	private Label lblTerm;
+	@FXML
+	private Button buttonCalculatePayment;
+
+	@FXML
+	private Label lblResultOrError;
+
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
 	}
 	
-	
 	//	TODO - RocketClient.RocketMainController
 	//			Call this when btnPayment is pressed, calculate the payment
 	@FXML
-	public void btnCalculatePayment(ActionEvent event)
+	public void btnCalculatePayment(ActionEvent event) throws NumberFormatException, RateException
 	{
-		Object message = null;
+		Object message= null;
 		//	TODO - RocketClient.RocketMainController
+		Action a= new Action(eAction.CalculatePayment);
+		LoanRequest lq= new LoanRequest();
 		
-		Action a = new Action(eAction.CalculatePayment);
-		LoanRequest lq = new LoanRequest();
 		//	TODO - RocketClient.RocketMainController
 		//			set the loan request details...  rate, term, amount, credit score, downpayment
 		//			I've created you an instance of lq...  execute the setters in lq
-
-		a.setLoanRequest(lq);
 		
-		//	send lq as a message to RocketHub		
+		lq.setdIncome(Integer.parseInt(txtIncome.getText()));
+		lq.setdExpenses(Double.parseDouble(txtExpenses.getText()));
+		lq.setiCreditScore(Integer.parseInt(txtCreditScore.getText()));
+		lq.setiTerm(Integer.parseInt((String) comboboxTerm.getValue()));
+		lq.setdAmount(Double.parseDouble(txtHouseCost.getText()));
+		lq.assigndRate();
+		a.setLoanRequest(lq);	
 		mainApp.messageSend(lq);
 	}
 	
@@ -56,5 +90,23 @@ public class MortgageController {
 		//			should be calculated.
 		//			Display dPayment on the form, rounded to two decimal places
 		
+		
+		double dPayment= lRequest.calculatedPayment();
+		double monthlyPITI= 0;
+		if(lRequest.getdExpenses()==0){
+			monthlyPITI= lRequest.getdIncome()*0.28;
+		}
+		//lost myself on this..
+		else{
+			monthlyPITI= (lRequest.getdIncome()*0.36)-lRequest.getdExpenses();
+		}
+		String rateAsPercentage= ((int)(100*lRequest.getdRate()))+"%";
+		}
+	
+		lblResultOrError.setText(lRequest.createResultMessage());
+	}
+	@FXML
+	public void initialize() {
+			comboboxTerm.getItems().addAll("15","30");
 	}
 }
